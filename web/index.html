@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html>
+	<!--Page Encoding-->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<!--Head-->
+	<head>
+		<!--Processing Source-->
+		<script type="text/javascript" src="processing-1.4.1.min.js"></script>
+
+		<!--Simulation Source-->
+		<script type="application/processing" data-processing-target="canvas">
+
+			//Load Images
+			PImage spr_robot=loadImage("robot.png");
+
+			//Global Variables
+			long old_time=0;
+			bool mousePressedOnce=false;
+			float global_scale=1.0;
+			float camera_x=document.getElementById("canvas").width/2.0;
+			float camera_y=document.getElementById("canvas").height/2.0;
+
+			//Setup Function (Happens Once)
+			void setup()
+			{
+				//Setup Canvas
+				size(document.getElementById("canvas").width,document.getElementById("canvas").height);
+				frameRate(120);
+
+				//Setup Images
+				imageMode(CENTER);
+			}
+
+			//Idle Function
+			void idle()
+			{
+				//Reset Mouse Pressed Once
+				mousePressedOnce=false;
+			}
+
+			//Draw Function (Happens as Fast as Possible)
+			void draw()
+			{
+				//If Time to Draw
+				if(millis()>old_time+10)
+				{
+					//Call Idle Function
+					idle();
+
+					//Clear Screen
+					background(160,160,160);
+
+					//Translate Camera
+					translate(camera_x,camera_y);
+
+					//Scale Camera
+					scale(global_scale);
+
+					//Draw Vehicle Lines
+					for(int ii=0;ii<vehicles.length;++ii)
+					{
+						int x=parseInt(vehicles[ii].x);
+						int y=parseInt(vehicles[ii].y);
+						int dx=parseInt(vehicles[ii].dx);
+						int dy=parseInt(vehicles[ii].dy);
+
+						fill(0,0,0,255);
+						stroke(0,0,0,255);
+						strokeWeight(2);
+						line(vehicles[ii].x,vehicles[ii].y,vehicles[ii].dx,vehicles[ii].dy);
+					}
+
+					//Draw Vehicle Destinations
+					for(int ii=0;ii<vehicles.length;++ii)
+					{
+						String id=vehicles[ii].id;
+						int dx=parseInt(vehicles[ii].dx);
+						int dy=parseInt(vehicles[ii].dy);
+
+						fill(42,255,143,255);
+						stroke(0,0,0,255);
+						strokeWeight(2);
+						ellipse(dx,dy,48,48);
+
+						fill(0,0,0,255);
+						stroke(0,0,0,255);
+						textAlign(CENTER,CENTER);
+						textSize(16);
+						text(id,dx,dy);
+					}
+
+					//Draw Vehicles
+					for(int ii=0;ii<vehicles.length;++ii)
+					{
+						int x=parseInt(vehicles[ii].x);
+						int y=parseInt(vehicles[ii].y);
+						int direction=parseInt(vehicles[ii].direction);
+
+						//Save Matrix
+						pushMatrix();
+
+						//Position Sprite
+						translate(x,y);
+						rotate(direction);
+
+						//Draw Sprite
+						image(spr_robot,0,0,spr_robot.width/4,spr_robot.height/4);
+
+						//Load Matrix
+						popMatrix();
+					}
+
+					//Update Time
+					old_time=millis();
+				}
+			}
+		</script>
+
+		<!--Javascript Source-->
+		<script type="text/javascript">
+
+			//Global Variables
+			var vehicles={"length":"0"};
+
+			//Initialize Function (Called On Body Load)
+			function initialize()
+			{
+				//Set Vehicle Get Interval
+				setInterval(get,500);
+			}
+
+			//Get Function (Gets Vehicle Update)
+			function get()
+			{
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Set XML HTTP Request Return Function
+				xmlhttp.onreadystatechange=function()
+				{
+					if(xmlhttp.readyState==4&&xmlhttp.status==200)
+					{
+						try
+						{
+							//Create JSON Object From Return Data
+							var return_json=JSON.parse(xmlhttp.responseText);
+
+							//Check For Valid JSON Object
+							if(return_json)
+							{
+								vehicles=return_json;
+
+								//Clear List HTML
+								var table_html="";
+
+								//Build List HTML
+								table_html+="<table style='border:1px solid black;'>";
+									table_html+="<tr>";
+										table_html+="<td>id</td>";
+										table_html+="<td>radio</td>";
+										table_html+="<td>baud</td>";
+										table_html+="<td>x</td>";
+										table_html+="<td>y</td>";
+										table_html+="<td>direction</td>";
+										table_html+="<td>dx</td>";
+										table_html+="<td>dy</td>";
+										table_html+="<td>enc0a</td>";
+										table_html+="<td>enc0b</td>";
+										table_html+="<td>enc1a</td>";
+										table_html+="<td>enc1b</td>";
+										table_html+="<td>ir0</td>";
+										table_html+="<td>ir1</td>";
+										table_html+="<td>us0</td>";
+										table_html+="<td>us1</td>";
+										table_html+="<td></td>";
+										table_html+="<td></td>";
+									table_html+="</tr>";
+
+									for(var ii=0;ii<vehicles.length;++ii)
+									{
+										table_html+="<tr>\n";
+											table_html+="<td>"+vehicles[ii].id+"</td>";
+											table_html+="<td>"+vehicles[ii].radio+"</td>";
+											table_html+="<td>"+vehicles[ii].baud+"</td>";
+											table_html+="<td>"+vehicles[ii].x+"</td>";
+											table_html+="<td>"+vehicles[ii].y+"</td>";
+											table_html+="<td>"+vehicles[ii].direction+"</td>";
+											table_html+="<td>"+vehicles[ii].dx+"</td>";
+											table_html+="<td>"+vehicles[ii].dy+"</td>";
+											table_html+="<td>"+vehicles[ii].enc0a+"</td>";
+											table_html+="<td>"+vehicles[ii].enc0b+"</td>";
+											table_html+="<td>"+vehicles[ii].enc1a+"</td>";
+											table_html+="<td>"+vehicles[ii].enc1b+"</td>";
+											table_html+="<td>"+vehicles[ii].ir0+"</td>";
+											table_html+="<td>"+vehicles[ii].ir1+"</td>";
+											table_html+="<td>"+vehicles[ii].us0+"</td>";
+											table_html+="<td>"+vehicles[ii].us1+"</td>";
+											table_html+="<td><input type='button' value='remove' onclick='rm("+
+												vehicles[ii].id+");'</td>";
+
+											if(vehicles[ii].connected=="0")
+											{
+												table_html+="<td><input type='button' value='connect' onclick='connect("+
+													vehicles[ii].id+");'</td>";
+											}
+											else
+											{
+												table_html+="<td><input type='button' value='disconnect' onclick='disconnect("+
+													vehicles[ii].id+");'</td>";
+											}
+
+										table_html+="</tr>";
+									}
+
+								table_html+="</table>";
+
+								//Update List
+								document.getElementById("list").innerHTML=table_html;
+							}
+						}
+						catch(e)
+						{}
+
+						//Debug
+						document.getElementById("debug").value=xmlhttp.responseText;
+					}
+				}
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("get"),true);
+				xmlhttp.send(null);
+			}
+
+			//Add Function (Adds Vehicle)
+			function add(id,radio,baud)
+			{
+				//Create JSON Object
+				var temp={};
+				temp.id=id;
+				temp.radio=radio;
+				temp.baud=baud;
+
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("add="+JSON.stringify(temp)),true);
+				xmlhttp.send(null);
+			}
+
+			//Remove Function (Removes a Vehicle)
+			function rm(id)
+			{
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("rm="+id),true);
+				xmlhttp.send(null);
+			}
+
+			//Set Function (Sets a Vehicle)
+			function set(id,dx,dy)
+			{
+				//Create JSON Object
+				var temp={};
+				temp.id=id;
+				temp.dx=dx;
+				temp.dy=dy;
+
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("set="+JSON.stringify(temp)),true);
+				xmlhttp.send(null);
+			}
+
+			//Connect Function (Connects a Vehicle's Radio)
+			function connect(id)
+			{
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("connect="+id),true);
+				xmlhttp.send(null);
+			}
+
+			//Disconnect Function (Disconnects a Vehicle's Radio)
+			function disconnect(id)
+			{
+				//Create XML HTTP Request
+				var xmlhttp=new XMLHttpRequest();
+
+				//Send XML HTTP Request
+				xmlhttp.open("GET",encodeURIComponent("disconnect="+id),true);
+				xmlhttp.send(null);
+			}
+		</script>
+	</head>
+
+	<!--Body-->
+	<body onload="initialize();">
+
+		<!--Title and Header-->
+		<title>Vehicle Management</title>
+		<h1>Vehicle Management</h1>
+
+		<!--Canvas-->
+		<div><canvas id="canvas" width="480px" height="460px" style="border:1px solid #000000;"/></div>
+
+		<!--Vehicle List-->
+		<h3>Vehicles</h3>
+			<div id="list"></div>
+			id <input type="text" id="id1"/>
+			rx <input type="text" id="rx"/>
+			baud <input type="text" id="baud"/>
+			<input type="button" value="add" onclick=
+				"add(document.getElementById('id1').value,document.getElementById('rx').value,document.getElementById('baud').value);"/>
+			<br/>
+			id <input type="text" id="id2"/>
+			dx <input type="text" id="dx"/>
+			dy <input type="text" id="dy"/>
+			<input type="button" value="set" onclick=
+				"set(document.getElementById('id2').value,document.getElementById('dx').value,document.getElementById('dy').value);"/>
+			<br/>
+
+		<!--Debug-->
+		<h3>Debug</h3>
+			<textarea id="debug" rows="20" cols="100"></textarea><br/>
+	</body>
+</html>

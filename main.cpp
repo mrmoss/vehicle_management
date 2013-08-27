@@ -49,24 +49,21 @@ class vehicle
 			//Get Updated Sensor Values
 			if(_sync.good())
 			{
-				enc0a=_sync.get(2);
-				enc0b=_sync.get(3);
-				enc1a=_sync.get(4);
-				enc1b=_sync.get(5);
-				ir0=_sync.get(6);
-				ir1=_sync.get(7);
-				us0=_sync.get(8);
-				us1=_sync.get(9);
-				accel_x=_sync.get(9);
-				accel_y=_sync.get(10);
-				accel_z=_sync.get(11);
-			}
-
-			//MOVE HERE, RIGHT NOW I'M JUST KILLING THE MOTORS
-			if(_sync.good())
-			{
-				_sync.set(0,0);
-				_sync.set(1,0);
+				_sync.set(0,x);
+				_sync.set(1,y);
+				_sync.set(2,dx);
+				_sync.set(3,dy);
+				enc0a=_sync.get(4);
+				enc0b=_sync.get(5);
+				enc1a=_sync.get(6);
+				enc1b=_sync.get(7);
+				ir0=_sync.get(8);
+				ir1=_sync.get(9);
+				us0=_sync.get(10);
+				us1=_sync.get(11);
+				accel_x=_sync.get(12);
+				accel_y=_sync.get(13);
+				accel_z=_sync.get(14);
 			}
 		}
 

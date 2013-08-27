@@ -3,19 +3,21 @@
 //Modified On:  08/27/2013
 
 //Serial Sync Protocol
-//0    left speed
-//1    right speed
-//2    enc0a
-//3    enc0b
-//4    enc1a
-//5    enc1b
-//6    ir0
-//7    ir1
-//8    us0
-//9    us1
-//10   acceleromter x
-//11   acceleromter y
-//12   acceleromter z
+//0    current x
+//1    current y
+//2    destination x
+//3    destination y
+//4    enc0a
+//5    enc0b
+//6    enc1a
+//7    enc1b
+//8    ir0
+//9    ir1
+//10   us0
+//11   us1
+//12   acceleromter x
+//13   acceleromter y
+//14   acceleromter z
 
 //Serial Sync Header
 #include <SerialSyncArduino.h>
@@ -25,6 +27,10 @@ byte dir_pins[4]={10,11,12,13};
 byte spd_pins[4]={6,7,8,9};
 byte int_nums[4]={2,3,4,5};
 bool fwd_dirs[4]={HIGH,HIGH,HIGH,HIGH};
+int x=0;
+int y=0;
+int dx=0;
+int dy=0;
 int enc0a_count=0;
 int enc0b_count=0;
 int enc1a_count=0;
@@ -103,21 +109,26 @@ void setup()
 //Loop (Happens forever)
 void loop()
 {
-  //Update Motors
-  move_rover(xbee.get(0),xbee.get(1));
+  //Update Current Position
+  x=xbee.get(0);
+  y=xbee.get(1);
+
+  //Update Desired Position
+  dx=xbee.get(2);
+  dy=xbee.get(3);
 
   //Update Sensors
-  xbee.set(2,analogRead(enc0a_count));
-  xbee.set(3,analogRead(enc0b_count));
-  xbee.set(4,analogRead(enc1a_count));
-  xbee.set(5,analogRead(enc1b_count));
-  xbee.set(6,analogRead(ir0_pin));
-  xbee.set(7,analogRead(ir1_pin));
-  xbee.set(8,analogRead(us0_pin));
-  xbee.set(9,analogRead(us1_pin));
-  xbee.set(10,analogRead(accel_x_pin));
-  xbee.set(11,analogRead(accel_y_pin));
-  xbee.set(12,analogRead(accel_z_pin));
+  xbee.set(4,analogRead(enc0a_count));
+  xbee.set(5,analogRead(enc0b_count));
+  xbee.set(6,analogRead(enc1a_count));
+  xbee.set(7,analogRead(enc1b_count));
+  xbee.set(8,analogRead(ir0_pin));
+  xbee.set(9,analogRead(ir1_pin));
+  xbee.set(10,analogRead(us0_pin));
+  xbee.set(11,analogRead(us1_pin));
+  xbee.set(12,analogRead(accel_x_pin));
+  xbee.set(13,analogRead(accel_y_pin));
+  xbee.set(14,analogRead(accel_z_pin));
 
   //Update Radio Communication
   xbee.loop();

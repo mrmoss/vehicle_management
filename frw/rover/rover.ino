@@ -126,7 +126,7 @@ void loop()
   direction=xbee.get(15);
 
   //Update Sensors
-  xbee.set(4,enc0a_count);
+  xbee.set(4,enc0a_count));
   xbee.set(5,enc0b_count);
   xbee.set(6,enc1a_count);
   xbee.set(7,enc1b_count);

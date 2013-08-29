@@ -41,7 +41,7 @@ class vehicle
 	public:
 		//Constructor (Default)
 		vehicle(const int ID=-1,const std::string& RADIO="",const int BAUD=57600):
-			id(ID),radio(RADIO),baud(BAUD),x(0),y(0),direction(0),dx(-1),dy(-1),
+			id(ID),radio(RADIO),baud(BAUD),x(0),y(0),direction(0),dx(0),dy(0),
 			enc0a(0),enc0b(0),enc1a(0),enc1b(0),ir0(0),ir1(0),us0(0),us1(0),
 			accel_x(0),accel_y(0),accel_z(0),_sync(radio,baud)
 		{}
@@ -53,10 +53,6 @@ class vehicle
 			_sync.update_rx();
 
 			//Get Updated Sensor Values
-			_sync.set(0,x);
-			_sync.set(1,y);
-			_sync.set(2,dx);
-			_sync.set(3,dy);
 			enc0a=_sync.get(4);
 			enc0b=_sync.get(5);
 			enc1a=_sync.get(6);
@@ -68,6 +64,12 @@ class vehicle
 			accel_x=_sync.get(12);
 			accel_y=_sync.get(13);
 			accel_z=_sync.get(14);
+
+			//Set Updated Positional Values
+			_sync.set(0,x);
+			_sync.set(1,y);
+			_sync.set(2,dx);
+			_sync.set(3,dy);
 			_sync.set(15,direction);
 
 			//Update Sync TX

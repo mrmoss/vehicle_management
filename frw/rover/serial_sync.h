@@ -2,18 +2,20 @@
 //	Created By:		Mike Moss
 //	Modified On:	08/28/2013
 
+//ARDUINO VERSION
+
 //Begin Define Guards
 #ifndef MSL_SERIALSYNC_H
 #define MSL_SERIALSYNC_H
+
+//Arduino Header
+#include <Arduino.h>
 
 //Integer Standard Types Header
 #include <inttypes.h>
 
 //Serial Header
-#include "serial.hpp"
-
-//String Header
-#include <string>
+#include <HardwareSerial.h>
 
 //Number of Serial Variables
 #define MSL_SERIALSYNC_VARIABLES 85
@@ -26,22 +28,10 @@ namespace msl
 	{
 		public:
 			//Constructor (Default)
-			serial_sync(const std::string& port="",const uint32_t baud=57600);
+			serial_sync(HardwareSerial& serial,const uint32_t baud=57600);
 
 			//Setup Function (Sets up serial port)
 			void setup();
-
-			//Close Function (Closes Serial Port)
-			void close();
-
-			//Boolean Operator (Tests if Serial Port is Good)
-			operator bool() const;
-
-			//Not Operator (For Boolean Operator)
-			bool operator!() const;
-
-			//Good Function (Tests if Serial Port is Good)
-			bool good() const;
 
 			//Update RX Function (Receives updates over link)
 			void update_rx();
@@ -61,7 +51,7 @@ namespace msl
 
 			//Member Variables
 			uint32_t _baud;
-			msl::serial _serial;
+			HardwareSerial* _serial;
 			int16_t _data[MSL_SERIALSYNC_VARIABLES];
 			uint8_t _flags[MSL_SERIALSYNC_VARIABLES];
 			uint8_t _tx_packet[3+1+MSL_SERIALSYNC_VARIABLES*3+1];

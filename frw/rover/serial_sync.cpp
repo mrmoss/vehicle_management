@@ -2,12 +2,14 @@
 //	Created By:		Mike Moss
 //	Modified On:	08/28/2013
 
-//Definitions for "serial_sync.hpp"
-#include "serial_sync.hpp"
+//ARDUINO VERSION
+
+//Definitions for "serial_sync.h"
+#include "serial_sync.h"
 
 //Constructor (Default)
-msl::serial_sync::serial_sync(const std::string& port,const uint32_t baud):
-	_baud(baud),_serial(port,_baud),_rx_counter(0)
+msl::serial_sync::serial_sync(HardwareSerial& serial,const uint32_t baud):
+	_baud(baud),_serial(&serial),_rx_counter(0)
 {
 	//Zero Out Data Array
 	for(uint8_t ii=0;ii<MSL_SERIALSYNC_VARIABLES;++ii)
@@ -28,49 +30,21 @@ msl::serial_sync::serial_sync(const std::string& port,const uint32_t baud):
 void msl::serial_sync::setup()
 {
 	//Connect Serial Port
-	_serial.connect();
+	_serial->begin(_baud);
 
-	//Check Serial Port
-	if(_serial.good())
-	{
-		//Packet Header
-		_tx_packet[0]='m';
-		_tx_packet[1]='s';
-		_tx_packet[2]='l';
+	//Packet Header
+	_tx_packet[0]='m';
+	_tx_packet[1]='s';
+	_tx_packet[2]='l';
 
-		//Packet Size
-		_tx_packet[3]=0;
+	//Packet Size
+	_tx_packet[3]=0;
 
-		//Packet CRC
-		_tx_packet[3+1]=calculate_crc(_tx_packet,3+1);
+	//Packet CRC
+	_tx_packet[3+1]=calculate_crc(_tx_packet,3+1);
 
-		//Send Packet
-		_serial.write(_tx_packet,3+1+1);
-	}
-}
-
-//Boolean Operator (Tests if Serial Port is Good)
-msl::serial_sync::operator bool() const
-{
-	return good();
-}
-
-//Not Operator (For Boolean Operator)
-bool msl::serial_sync::operator!() const
-{
-	return !good();
-}
-
-//Good Function (Tests if Serial Port is Good)
-bool msl::serial_sync::good() const
-{
-	return _serial.good();
-}
-
-//Close Function (Closes Serial Port)
-void msl::serial_sync::close()
-{
-	_serial.close();
+	//Send Packet
+	_serial->write(_tx_packet,3+1+1);
 }
 
 //Update RX Function (Receives updates over link)
@@ -80,7 +54,7 @@ void msl::serial_sync::update_rx()
 	uint8_t temp;
 
 	//Read Bytes
-	while(_serial.available()>0&&_serial.read(&temp,1)==1)
+	while(_serial->available()>0&&_serial->readBytes((char*)&temp,1)==1)
 	{
 		//Put Byte in Buffer
 		_rx_packet[_rx_counter]=temp;
@@ -176,7 +150,7 @@ void msl::serial_sync::update_tx()
 		_tx_packet[3+1+_tx_packet[3]]=calculate_crc(_tx_packet,3+1+_tx_packet[3]);
 
 		//Send Packet
-		_serial.write(_tx_packet,3+1+_tx_packet[3]+1);
+		_serial->write(_tx_packet,3+1+_tx_packet[3]+1);
 	}
 
 	//Reset Set Flags

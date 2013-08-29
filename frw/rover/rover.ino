@@ -18,23 +18,25 @@
 //12   acceleromter x
 //13   acceleromter y
 //14   acceleromter z
+//15   direction
 
 //Serial Sync Header
-#include <SerialSyncArduino.h>
+#include "SerialSyncArduino.h"
 
 //Global Variables
-byte dir_pins[4]={10,11,12,13};
-byte spd_pins[4]={6,7,8,9};
-byte int_nums[4]={2,3,4,5};
-bool fwd_dirs[4]={HIGH,HIGH,HIGH,HIGH};
+byte dir_pins[4]={11,12,13,10};
+byte spd_pins[4]={7,8,9,6};
+byte int_nums[4]={4,5,2,3};
+bool fwd_dirs[4]={LOW,HIGH,HIGH,LOW};
 int x=0;
 int y=0;
 int dx=0;
 int dy=0;
-int enc0a_count=0;
-int enc0b_count=0;
-int enc1a_count=0;
-int enc1b_count=0;
+int direction=0;
+int enc0a_count=1;
+int enc0b_count=2;
+int enc1a_count=3;
+int enc1b_count=4;
 byte ir0_pin=A0;
 byte ir1_pin=A1;
 byte us0_pin=A2;
@@ -42,7 +44,8 @@ byte us1_pin=A3;
 byte accel_x_pin=A4;
 byte accel_y_pin=A5;
 byte accel_z_pin=A6;
-SerialSync xbee(Serial2,9600);
+SerialSync xbee(Serial2,57600);
+long radio_timer=0;
 
 //Move Rover Function (Negative numbers mean reverse direction)
 void move_rover(int left_spd,int right_spd)
@@ -116,20 +119,30 @@ void loop()
   //Update Desired Position
   dx=xbee.get(2);
   dy=xbee.get(3);
+  
+  //Update Direction
+  direction=xbee.get(15);
 
   //Update Sensors
-  xbee.set(4,analogRead(enc0a_count));
-  xbee.set(5,analogRead(enc0b_count));
-  xbee.set(6,analogRead(enc1a_count));
-  xbee.set(7,analogRead(enc1b_count));
-  xbee.set(8,analogRead(ir0_pin));
-  xbee.set(9,analogRead(ir1_pin));
-  xbee.set(10,analogRead(us0_pin));
-  xbee.set(11,analogRead(us1_pin));
-  xbee.set(12,analogRead(accel_x_pin));
-  xbee.set(13,analogRead(accel_y_pin));
-  xbee.set(14,analogRead(accel_z_pin));
+  if(millis()>radio_timer)
+  {
+    xbee.set(4,enc0a_count);
+    xbee.set(5,enc0b_count);
+    xbee.set(6,enc1a_count);
+    xbee.set(7,enc1b_count);
+    xbee.set(8,analogRead(ir0_pin));
+    xbee.set(9,analogRead(ir1_pin));
+    xbee.set(10,analogRead(us0_pin));
+    xbee.set(11,analogRead(us1_pin));
+    xbee.set(12,analogRead(accel_x_pin));
+    xbee.set(13,analogRead(accel_y_pin));
+    xbee.set(14,analogRead(accel_z_pin));
+    radio_timer=0;//millis();
+  }
 
   //Update Radio Communication
   xbee.loop();
+  
+  //TESTING
+  move_rover(dx,dy);
 }

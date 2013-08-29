@@ -23,6 +23,9 @@
 //String Utility Header
 #include "msl/string_util.hpp"
 
+//Time Utility Header
+#include "msl/time_util.hpp"
+
 //Vector Header
 #include <vector>
 
@@ -40,14 +43,17 @@ class vehicle
 		vehicle(const int ID=-1,const std::string& RADIO="",const int BAUD=57600):
 			id(ID),radio(RADIO),baud(BAUD),x(0),y(0),direction(0),dx(-1),dy(-1),
 			enc0a(0),enc0b(0),enc1a(0),enc1b(0),ir0(0),ir1(0),us0(0),us1(0),
-			accel_x(0),accel_y(0),accel_z(0),_sync(radio,baud)
+			accel_x(0),accel_y(0),accel_z(0),_sync(radio,baud),_timer(0)
 		{}
 
 		//Update Function
 		void update()
 		{
+			//Update Sync
+			_sync.loop();
+
 			//Get Updated Sensor Values
-			if(_sync.good())
+			if(_sync.good()&&msl::millis()>_timer)
 			{
 				_sync.set(0,x);
 				_sync.set(1,y);
@@ -64,6 +70,9 @@ class vehicle
 				accel_x=_sync.get(12);
 				accel_y=_sync.get(13);
 				accel_z=_sync.get(14);
+				_sync.set(15,direction);
+
+				_timer=msl::millis()+30;
 			}
 		}
 
@@ -118,26 +127,27 @@ class vehicle
 		int id;
 		std::string radio;
 		int baud;
-		int x;
-		int y;
-		int direction;
-		int dx;
-		int dy;
-		int enc0a;
-		int enc0b;
-		int enc1a;
-		int enc1b;
-		int ir0;
-		int ir1;
-		int us0;
-		int us1;
-		int accel_x;
-		int accel_y;
-		int accel_z;
+		short x;
+		short y;
+		short direction;
+		short dx;
+		short dy;
+		short enc0a;
+		short enc0b;
+		short enc1a;
+		short enc1b;
+		short ir0;
+		short ir1;
+		short us0;
+		short us1;
+		short accel_x;
+		short accel_y;
+		short accel_z;
 
 	private:
 		//Private Member Variables
 		SerialSync _sync;
+		long _timer;
 };
 
 //Global Variables

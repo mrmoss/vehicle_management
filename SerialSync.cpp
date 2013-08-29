@@ -39,62 +39,59 @@ void SerialSync::setup()
 
 void SerialSync::loop()
 {
-	while(_port.available()>0)
+	uint8_t read_byte;
+
+	while(_port.available()>0&&_port.read((uint8_t*)&read_byte,1)==1)
 	{
-		uint8_t read_byte;
-
-		if(_port.read((uint8_t*)&read_byte,1)==1)
+		if(_packet_pointer==0)
 		{
-			if(_packet_pointer==0)
-			{
-				if(read_byte=='u')
-					++_packet_pointer;
-			}
-			else if(_packet_pointer==1)
-			{
-				if(read_byte=='a')
-					++_packet_pointer;
-				else
-					_packet_pointer=0;
-			}
-			else if(_packet_pointer==2)
-			{
-				if(read_byte=='f')
-					++_packet_pointer;
-				else
-					_packet_pointer=0;
-			}
-			else if(_packet_pointer==3)
-			{
-				if(read_byte=='!')
-				{
-					for(unsigned int ii=0;ii<SERIAL_SYNC_DATA_SIZE;++ii)
-						set(ii,get(ii));
-
-					_packet_pointer=0;
-				}
-				else if(_current_index<SERIAL_SYNC_DATA_SIZE)
-				{
-					_current_index=read_byte;
-					++_packet_pointer;
-				}
-				else
-				{
-					_packet_pointer=0;
-				}
-			}
-			else if(_packet_pointer==4)
-			{
-				((uint8_t*)&_temp_data)[0]=read_byte;
+			if(read_byte=='u')
 				++_packet_pointer;
-			}
-			else if(_packet_pointer==5)
+		}
+		else if(_packet_pointer==1)
+		{
+			if(read_byte=='a')
+				++_packet_pointer;
+			else
+				_packet_pointer=0;
+		}
+		else if(_packet_pointer==2)
+		{
+			if(read_byte=='f')
+				++_packet_pointer;
+			else
+				_packet_pointer=0;
+		}
+		else if(_packet_pointer==3)
+		{
+			if(read_byte=='!')
 			{
-				((uint8_t*)&_temp_data)[1]=read_byte;
-				_data[_current_index]=_temp_data;
-				_temp_data=0;
+				for(unsigned int ii=0;ii<SERIAL_SYNC_DATA_SIZE;++ii)
+					set(ii,get(ii));
+
 				_packet_pointer=0;
 			}
+			else if(_current_index<SERIAL_SYNC_DATA_SIZE)
+			{
+				_current_index=read_byte;
+				++_packet_pointer;
+			}
+			else
+			{
+				_packet_pointer=0;
+			}
+		}
+		else if(_packet_pointer==4)
+		{
+			((uint8_t*)&_temp_data)[0]=read_byte;
+			++_packet_pointer;
+		}
+		else if(_packet_pointer==5)
+		{
+			((uint8_t*)&_temp_data)[1]=read_byte;
+			_data[_current_index]=_temp_data;
+			_temp_data=0;
+			_packet_pointer=0;
 		}
 	}
 }

@@ -21,7 +21,7 @@
 //15   direction
 
 //Serial Sync Header
-#include "SerialSyncArduino.h"
+#include "serial_sync.h"
 
 //Global Variables
 byte dir_pins[4]={11,12,13,10};
@@ -44,8 +44,7 @@ byte us1_pin=A3;
 byte accel_x_pin=A4;
 byte accel_y_pin=A5;
 byte accel_z_pin=A6;
-SerialSync xbee(Serial2,57600);
-long radio_timer=0;
+msl::serial_sync xbee(Serial2,57600);
 
 //Move Rover Function (Negative numbers mean reverse direction)
 void move_rover(int left_spd,int right_spd)
@@ -112,6 +111,9 @@ void setup()
 //Loop (Happens forever)
 void loop()
 {
+  //Update Radio RX
+  xbee.update_rx();
+
   //Update Current Position
   x=xbee.get(0);
   y=xbee.get(1);
@@ -119,30 +121,26 @@ void loop()
   //Update Desired Position
   dx=xbee.get(2);
   dy=xbee.get(3);
-  
+
   //Update Direction
   direction=xbee.get(15);
 
   //Update Sensors
-  if(millis()>radio_timer)
-  {
-    xbee.set(4,enc0a_count);
-    xbee.set(5,enc0b_count);
-    xbee.set(6,enc1a_count);
-    xbee.set(7,enc1b_count);
-    xbee.set(8,analogRead(ir0_pin));
-    xbee.set(9,analogRead(ir1_pin));
-    xbee.set(10,analogRead(us0_pin));
-    xbee.set(11,analogRead(us1_pin));
-    xbee.set(12,analogRead(accel_x_pin));
-    xbee.set(13,analogRead(accel_y_pin));
-    xbee.set(14,analogRead(accel_z_pin));
-    radio_timer=0;//millis();
-  }
+  xbee.set(4,enc0a_count);
+  xbee.set(5,enc0b_count);
+  xbee.set(6,enc1a_count);
+  xbee.set(7,enc1b_count);
+  xbee.set(8,analogRead(ir0_pin));
+  xbee.set(9,analogRead(ir1_pin));
+  xbee.set(10,analogRead(us0_pin));
+  xbee.set(11,analogRead(us1_pin));
+  xbee.set(12,analogRead(accel_x_pin));
+  xbee.set(13,analogRead(accel_y_pin));
+  xbee.set(14,analogRead(accel_z_pin));
 
-  //Update Radio Communication
-  xbee.loop();
-  
   //TESTING
   move_rover(dx,dy);
+
+  //Update Radio TX
+  xbee.update_tx();
 }

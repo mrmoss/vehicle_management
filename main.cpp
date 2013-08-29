@@ -9,7 +9,7 @@
 #include "msl/json.hpp"
 
 //Serial Sync Header
-#include "SerialSync.hpp"
+#include "msl/serial_sync.hpp"
 
 //Socket Header
 #include "msl/socket.hpp"
@@ -43,37 +43,35 @@ class vehicle
 		vehicle(const int ID=-1,const std::string& RADIO="",const int BAUD=57600):
 			id(ID),radio(RADIO),baud(BAUD),x(0),y(0),direction(0),dx(-1),dy(-1),
 			enc0a(0),enc0b(0),enc1a(0),enc1b(0),ir0(0),ir1(0),us0(0),us1(0),
-			accel_x(0),accel_y(0),accel_z(0),_sync(radio,baud),_timer(0)
+			accel_x(0),accel_y(0),accel_z(0),_sync(radio,baud)
 		{}
 
 		//Update Function
 		void update()
 		{
-			//Update Sync
-			_sync.loop();
+			//Update Sync RX
+			_sync.update_rx();
 
 			//Get Updated Sensor Values
-			if(_sync.good()&&msl::millis()>_timer)
-			{
-				_sync.set(0,x);
-				_sync.set(1,y);
-				_sync.set(2,dx);
-				_sync.set(3,dy);
-				enc0a=_sync.get(4);
-				enc0b=_sync.get(5);
-				enc1a=_sync.get(6);
-				enc1b=_sync.get(7);
-				ir0=_sync.get(8);
-				ir1=_sync.get(9);
-				us0=_sync.get(10);
-				us1=_sync.get(11);
-				accel_x=_sync.get(12);
-				accel_y=_sync.get(13);
-				accel_z=_sync.get(14);
-				_sync.set(15,direction);
+			_sync.set(0,x);
+			_sync.set(1,y);
+			_sync.set(2,dx);
+			_sync.set(3,dy);
+			enc0a=_sync.get(4);
+			enc0b=_sync.get(5);
+			enc1a=_sync.get(6);
+			enc1b=_sync.get(7);
+			ir0=_sync.get(8);
+			ir1=_sync.get(9);
+			us0=_sync.get(10);
+			us1=_sync.get(11);
+			accel_x=_sync.get(12);
+			accel_y=_sync.get(13);
+			accel_z=_sync.get(14);
+			_sync.set(15,direction);
 
-				_timer=msl::millis()+30;
-			}
+			//Update Sync TX
+			_sync.update_tx();
 		}
 
 		//JSON Function (Returns Object as a JSON Object)
@@ -110,7 +108,7 @@ class vehicle
 		{
 			try
 			{
-				_sync.stop();
+				_sync.close();
 				_sync.setup();
 			}
 			catch(...)
@@ -120,7 +118,7 @@ class vehicle
 		//Disconnect Function (Stops Serial Port Communication)
 		void disconnect()
 		{
-			_sync.stop();
+			_sync.close();
 		}
 
 		//Public Member Variables
@@ -146,8 +144,7 @@ class vehicle
 
 	private:
 		//Private Member Variables
-		SerialSync _sync;
-		long _timer;
+		msl::serial_sync _sync;
 };
 
 //Global Variables
@@ -176,7 +173,7 @@ int main(int argc,char* argv[])
 	//Be a server...forever...
 	while(true)
 	{
-		//Update Rovers
+		//Update Rovers RX
 		for(unsigned int ii=0;ii<vehicles.size();++ii)
 			vehicles[ii].update();
 
